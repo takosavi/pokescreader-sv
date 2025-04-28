@@ -1,0 +1,91 @@
+[project]
+name = "pokescreader-sv"
+version = "1.5.3"
+description = "ポケモン SV 向け画面読み上げツール."
+authors = [
+    { name = "もち (Mochi)", email = "mochi.takosavi@gmail.com" },
+]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "httpx (>=0.28.1,<0.29.0)",
+    "loguru (>=0.7.3,<0.8.0)",
+    "opencv-python (>=4.11.0.86,<5.0.0.0)",
+    "simpleobsws (>=1.4.2,<2.0.0)",
+    "pydantic (>=2.11.3,<3.0.0)",
+    "returns (>=0.25.0,<0.26.0)",
+    "jaconv (>=0.4.0,<0.5.0)",
+    "romaji-phonem (>=0.2.0,<0.3.0)",
+    "sounddevice (>=0.5.1,<0.6.0)",
+    "pyside6-essentials (>=6.9.0,<7.0.0)",
+    "tomlkit (>=0.13.2,<0.14.0)",
+    "winocr (>=0.0.15,<0.0.16) ; sys_platform == \"win32\"",
+    "pnlib (>=0.1.1,<0.2.0)",
+]
+
+[project.urls]
+homepage = "https://takosavi.net/pokescreader-sv/"
+
+[project.gui-scripts]
+pkscrd = "pkscrd.main:main"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{ include = "pkscrd" }]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-asyncio = "^0.26.0"
+pytest-mock = "^3.14.0"
+pytest-cov = "^6.1.1"
+black = "^25.1.0"
+ruff = "^0.11.6"
+mypy = "^1.15.0"
+
+[tool.poetry.group.build]
+optional = true
+
+[tool.poetry.group.build.dependencies]
+cx-freeze = "^8.2.0"
+
+[[tool.poetry.source]]
+name = "localhost"
+url = "http://localhost:8000/lib"
+priority = "explicit"
+
+[tool.poetry.dependencies]
+pnlib = {source = "localhost"}
+
+[tool.cxfreeze.build_exe]
+optimize = 2
+silent_level = 1
+packages = ["cryptography", "winrt.windows.foundation"]
+excludes = ["importlib_metadata", "unittest"]
+
+[tool.cxfreeze.bdist_mac]
+bundle_name = "pokescreader-sv"
+
+[[tool.cxfreeze.executables]]
+script = "pokescreader-sv.py"
+base = "gui"
+icon = "pkscrd/app/resources/pokescreader"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=pkscrd",
+    "--cov-report=term-missing",
+]
+asyncio_default_fixture_loop_scope = "session"
+disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
+
+[tool.ruff]
+include = ["pkscrd/**/*.py", "tests/**/*.py"]
+
+[tool.mypy]
+exclude = "^build/.*"
+plugins = ["returns.contrib.mypy.returns_plugin"]
+ignore_missing_imports = true

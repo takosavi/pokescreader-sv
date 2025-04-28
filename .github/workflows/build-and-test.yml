@@ -1,0 +1,72 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      NO_TESSERACT: '1'
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install
+        run: |
+          python3 -m http.server >repos.log 2>&1 &
+          poetry install
+          cat repos.log
+      - name: Run tests
+        run: poetry run pytest
+      - name: Run static analysis
+        run: |
+          poetry run ruff check .
+          poetry run black --check .
+          poetry run mypy .
+
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install
+        run: |
+          python3 -m http.server >repos.log 2>&1 &
+          poetry install --without=dev --with=build
+          cat repos.log
+      - name: Build
+        run: |
+          poetry run cxfreeze build_exe --build-exe dist
+          cp README-dist.md dist/README.md
+          cp -r licenses dist/
+      - name: Store artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pokescreader-sv-win
+          path: dist/*

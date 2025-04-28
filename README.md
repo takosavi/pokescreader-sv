@@ -25,6 +25,10 @@ This project does not currently support multilingualization.
 コードプロジェクトへの貢献は歓迎します.
 issue や pull request は日本語で発行いただいて構いません.
 
+### Contributors
+
+- 画像素材作成: [ねこ @nekodayooon](https://x.com/nekodayooon)
+
 ## License
 
 [![MIT License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)

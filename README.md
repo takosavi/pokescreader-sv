@@ -27,7 +27,7 @@ issue や pull request は日本語で発行いただいて構いません.
 
 ### Contributors
 
-- 画像素材作成: [ねこ @nekodayooon](https://x.com/nekodayooon)
+- [ねこ @nekodayooon](https://x.com/nekodayooon) (画像素材作成)
 
 ### Resources
 

@@ -56,7 +56,7 @@ def create_reader(
     screen_fetcher = loop.run_until_complete(
         create_screen_fetcher(
             settings.obs,
-            tolerance_callback=create_obs_tolerance_callback(errors),
+            obs_tolerance_callback=create_obs_tolerance_callback(errors),
         )
     )
     ocr = loop.run_until_complete(create_ocr_engine(settings.ocr))

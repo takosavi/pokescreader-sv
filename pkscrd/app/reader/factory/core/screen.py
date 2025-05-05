@@ -2,24 +2,29 @@ from typing import Optional
 
 from loguru import logger
 
-from pkscrd.app.settings.error import SettingsError
 from pkscrd.app.settings.model import ObsSettings
-from pkscrd.core.screen.infra.obs import ObsClient
+from pkscrd.app.settings.error import SettingsError
 from pkscrd.core.screen.service import ScreenFetcher
-from pkscrd.core.screen.service.impl.direct import DirectScreenFetcher
 from pkscrd.core.screen.service.impl.obs import ObsRecovery, ObsScreenFetcher
+from pkscrd.core.screen.infra.obs import ObsClient
 from pkscrd.core.tolerance.model import ToleranceCallback
 from pkscrd.core.tolerance.service import AsyncTolerance
 
 
-async def create_obs_screen_fetcher(
+async def create_screen_fetcher(
     config: ObsSettings,
     *,
     tolerance_callback: Optional[ToleranceCallback] = None,
     warning_error_count: int = 5,
     fatal_error_count: int = 15,
     recovery_sleep_in_seconds: float = 5.0,
-) -> ObsScreenFetcher:
+) -> ScreenFetcher:
+    """
+    設定からインスタンスを作成する.
+
+    Raises:
+        ConfigurationError: 設定に問題がありそうなとき.
+    """
     obs = ObsClient(port=config.port, password=config.password)
     if not await obs.ensure_connection():
         raise SettingsError(
@@ -51,23 +56,3 @@ async def create_obs_screen_fetcher(
         fatal_count=fatal_error_count,
     )
     return ObsScreenFetcher(obs, config.source, tolerance)
-
-
-async def create_screen_fetcher(
-    obs: ObsSettings,
-    *,
-    obs_tolerance_callback: Optional[ToleranceCallback] = None,
-) -> ScreenFetcher:
-    """
-    設定からインスタンスを作成する.
-
-    Raises:
-        ConfigurationError: 設定に問題がありそうなとき.
-    """
-    import os
-
-    if os.getenv("_PKSCRD_DEBUG"):
-        logger.debug("DirectScreenFetcher is enabled.")
-        return DirectScreenFetcher()
-
-    return create_obs_screen_fetcher(obs, tolerance_callback=obs_tolerance_callback)

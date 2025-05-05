@@ -8,7 +8,8 @@ from PySide6.QtWidgets import QApplication
 from loguru import logger
 
 from pkscrd.app.configuration import run_configuration
-from pkscrd.app.reader import create_reader, run_settings_error, show_pnlib_error
+from pkscrd.app.reader import run_settings_error, show_pnlib_error
+from pkscrd.app.reader.app import create_reader
 from pkscrd.app.settings.error import SettingsError, SettingsFileNotFoundError
 
 
@@ -16,7 +17,7 @@ def main() -> None:
     debugging = bool(os.getenv("_PKSCRD_DEBUG"))
     logger.remove()
     logger.add(
-        sys.stderr or "log.txt",  # For PyInstaller no console pattern
+        sys.stderr or "log.txt",
         level="DEBUG" if debugging else "WARNING",
         enqueue=True,
     )
@@ -28,28 +29,48 @@ def main() -> None:
         show_pnlib_error()
         return
 
+    def run() -> bool:
+        """
+        アプリケーションを実行する.
+
+        Returns:
+            読み上げアプリケーションの実行が引き続き必要であれば True, そうでなければ False.
+        """
+        context_manager = create_reader()
+
+        hit_except = False
+        try:
+            window, polling = loop.run_until_complete(context_manager.__aenter__())
+
+            polling_thread = threading.Thread(
+                target=loop.run_until_complete,
+                args=(polling(),),
+                daemon=True,
+            )
+            logger.debug("Polling thread: {}", polling_thread.name)
+            polling_thread.start()
+
+            window.show()
+            app.exec()
+
+            polling.stop()
+            polling_thread.join(timeout=60.0)
+            logger.debug("Polling thread is stopped.")
+
+            return window.needs_restart
+        except:  # noqa: E722
+            hit_except = True
+            if not loop.run_until_complete(context_manager.__aexit__(*sys.exc_info())):
+                raise
+            return False  # 結合レベルでは重大な問題なので, 終了させることにする.
+        finally:
+            if not hit_except:
+                loop.run_until_complete(context_manager.__aexit__(None, None, None))
+
     needs_reader = True
     while needs_reader:
-        needs_reader = False
-
         try:
-            with create_reader(loop) as (window, polling):
-                polling_thread = threading.Thread(
-                    target=loop.run_until_complete,
-                    args=(polling(),),
-                    daemon=True,
-                )
-                logger.debug("Routine thread: {}", polling_thread.name)
-                polling_thread.start()
-
-                window.show()
-                app.exec()
-
-                polling.stop()
-                polling_thread.join(timeout=60.0)
-                logger.debug("Routine thread is stopped.")
-
-                needs_reader = window.needs_restart
+            needs_reader = run()
         except SettingsFileNotFoundError:
             # 設定ファイルが存在しないときは初期状態に該当するので,
             # メッセージを出さずに設定画面を表示する.

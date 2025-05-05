@@ -46,6 +46,45 @@ poetry install --with build
 poetry run cxfreeze build_exe
 ```
 
+## Resources
+
+### Pokémon Database
+
+[PokéAPI](https://pokeapi.co/) から取得しています.
+リソースファイル作成コードは
+[pokescreader-database](https://github.com/takosavi/pokescreader-database)
+で公開しています.
+
+### Terastal
+
+以下の 2 つをデータとして収録しています.
+
+- テラスタイプが分かる直前の画面で用いる画像マスク
+- テラスタイプごとに異なる画面の色合い情報
+
+画像ファイル群から学習モデルを作成するコードは同梱していますが,
+作成手順はまだ整備しておりません. ごめんなさい.
+
+なお, 学習に用いた画像ファイルを公開する予定はありません.
+
+### Tesseract OCR
+
+#### 日本語モデル
+
+[tessdata_best](https://github.com/tesseract-ocr/tessdata_best/)
+の日本語学習モデル (`jpn.traineddata`) を
+[ニタラゴルイカ](https://www.type-labo.jp/Hanpunitalago.html)
+フォントでファインチューニングしたものを収録しています.
+(本当は "ロダンNTLG" がよかったのですが調達できませんでした...)
+
+チューニング方法はまだ整備しておりません. ごめんなさい.
+
+#### 英語モデル
+
+[tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast)
+の英語学習モデル (`eng.traineddata`) をそのまま使用しています.
+HP や PP など, 数値の読み取りに使用しています.
+
 ## Unreleased Codes
 
 このプロジェクトでは未公開のコードがあります.

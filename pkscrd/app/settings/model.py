@@ -3,10 +3,18 @@ from typing import Optional, Literal, Annotated
 from pydantic import BaseModel, Field
 
 
+class ScreenSettings(BaseModel):
+    engine: Literal["obs", "capture-device"] = "obs"
+
+
 class ObsSettings(BaseModel):
     port: int  # HACK 範囲を決める.
     password: str
     source: str
+
+
+class CaptureDeviceSettings(BaseModel):
+    name: str
 
 
 class NotificationSettings(BaseModel):
@@ -50,7 +58,9 @@ class ScreenshotSettings(BaseModel):
 
 
 class Settings(BaseModel):
-    obs: ObsSettings
+    screen: ScreenSettings = Field(default_factory=ScreenSettings)
+    obs: Optional[ObsSettings] = None
+    capture_device: Optional[CaptureDeviceSettings] = None
     notification: NotificationSettings = Field(default_factory=NotificationSettings)
     bouyomichan: BouyomichanSettings = Field(default_factory=BouyomichanSettings)
     voicevox: VoicevoxSettings = Field(default_factory=VoicevoxSettings)

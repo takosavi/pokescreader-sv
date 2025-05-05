@@ -14,6 +14,14 @@ def create_obs_tolerance_callback(errors: Queue[str]) -> QueuingToleranceCallbac
     )
 
 
+def create_capture_tolerance_callback(errors: Queue[str]) -> QueuingToleranceCallback:
+    return QueuingToleranceCallback(
+        errors,
+        "映像キャプチャデバイスからの映像取得失敗が長時間続きました. アプリを終了します.",
+        "映像キャプチャデバイスへ接続できなくなりました. アプリを終了します.",
+    )
+
+
 def create_bouyomichan_tolerance_callback(
     errors: Queue[str],
 ) -> QueuingToleranceCallback:

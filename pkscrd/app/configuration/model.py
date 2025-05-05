@@ -3,14 +3,35 @@ from typing import Literal, Optional
 
 
 @dataclasses.dataclass(frozen=True)
-class WebSocketServerConfiguration:
+class ObsWebSocketServerConfiguration:
     port: int
     password: str
 
 
 @dataclasses.dataclass(frozen=True)
-class CaptureDeviceConfiguration:
+class ObsCaptureDeviceConfiguration:
     source: str
+
+
+@dataclasses.dataclass(frozen=True)
+class ObsConfiguration:
+    web_socket_server: ObsWebSocketServerConfiguration
+    capture_device: ObsCaptureDeviceConfiguration
+
+
+@dataclasses.dataclass(frozen=True)
+class CaptureDeviceConfiguration:
+    name: str
+
+
+type ScreenEngine = Literal["capture-device", "obs"]
+
+
+@dataclasses.dataclass(frozen=True)
+class ScreenConfiguration:
+    engine: ScreenEngine
+    obs: ObsConfiguration
+    capture_device: CaptureDeviceConfiguration
 
 
 type NotificationEngine = Literal["bouyomichan", "voicevox"]
@@ -58,8 +79,7 @@ class GuiConfiguration:
 
 @dataclasses.dataclass(frozen=True)
 class Configuration:
-    web_socket_server: WebSocketServerConfiguration
-    capture_device: CaptureDeviceConfiguration
+    screen: ScreenConfiguration
     notification: NotificationConfiguration
     bouyomichan: BouyomichanConfiguration
     voicevox: VoicevoxConfiguration

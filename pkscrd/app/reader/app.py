@@ -29,6 +29,7 @@ from .error import (
     create_bouyomichan_tolerance_callback,
     create_voicevox_tolerance_callback,
     watch_error,
+    create_capture_tolerance_callback,
 )
 from .factory.controller import create_image_controller
 from .factory.core.notification import using_notifier
@@ -83,8 +84,11 @@ async def create_reader(
     watch_error(gui, errors)
 
     async with using_screen_fetcher(
-        settings.obs,
+        screen=settings.screen,
+        obs=settings.obs,
+        capture=settings.capture_device,
         obs_tolerance_callback=create_obs_tolerance_callback(errors),
+        capture_tolerance_callback=create_capture_tolerance_callback(errors),
     ) as screen_fetcher:
         with (
             using_notifier(

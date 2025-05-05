@@ -56,6 +56,13 @@ def load_settings(path: Optional[str] = None) -> Settings:
             f"メッセージ:\n{error}"
         )
 
+    # 映像キャプチャデバイス対応前の設定と互換性を持たせる.
+    # 以前は OBS 接続設定だけ持たせていたので,
+    # スクリーンエンジン未指定かつ OBS 接続設定が存在するならば,
+    # スクリーンエンジンを OBS とする.
+    if "screen" not in data and "obs" in data:
+        data["screen"] = {"engine": "obs"}
+
     try:
         return Settings.model_validate(data)
     except ValidationError as error:

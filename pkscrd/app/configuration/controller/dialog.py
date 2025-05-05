@@ -28,21 +28,26 @@ from pkscrd.app.configuration.model import (
     GuiConfiguration,
     NotificationConfiguration,
     NotificationEngine,
+    ObsCaptureDeviceConfiguration,
+    ObsConfiguration,
+    ObsWebSocketServerConfiguration,
     OcrConfiguration,
+    ScreenEngine,
+    ScreenConfiguration,
     VoicevoxConfiguration,
-    WebSocketServerConfiguration,
 )
 from pkscrd.app.gui import set_window_icon
+from pkscrd.core.screen.infra.device import get_devices
 from .inputs import VoicevoxSpeakerInput, AudioDeviceInput
 
 _FORM_ALIGNMENT_FLAG = Qt.AlignmentFlag.AlignVCenter
 
 
-class WebSocketServerGroup(QGroupBox):
+class ObsWebSocketServerGroup(QGroupBox):
 
     def __init__(
         self,
-        value: WebSocketServerConfiguration,
+        value: ObsWebSocketServerConfiguration,
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent=parent, title="WebSocket サーバー")
@@ -76,18 +81,18 @@ class WebSocketServerGroup(QGroupBox):
         layout.addRow("パスワード", password_widget)
         self.setLayout(layout)
 
-    def output(self) -> WebSocketServerConfiguration:
-        return WebSocketServerConfiguration(
+    def output(self) -> ObsWebSocketServerConfiguration:
+        return ObsWebSocketServerConfiguration(
             port=self._port.value(),
             password=self._password.text(),
         )
 
 
-class CaptureDeviceGroup(QGroupBox):
+class ObsCaptureDeviceGroup(QGroupBox):
 
     def __init__(
         self,
-        value: CaptureDeviceConfiguration,
+        value: ObsCaptureDeviceConfiguration,
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent=parent, title="映像キャプチャデバイス")
@@ -100,8 +105,88 @@ class CaptureDeviceGroup(QGroupBox):
         layout.addRow("ソース", self._source)
         self.setLayout(layout)
 
-    def output(self) -> CaptureDeviceConfiguration:
-        return CaptureDeviceConfiguration(source=self._source.text())
+    def output(self) -> ObsCaptureDeviceConfiguration:
+        return ObsCaptureDeviceConfiguration(source=self._source.text())
+
+
+class ScreenWidget(QWidget):
+    _LABEL_TO_ENGINE: dict[str, ScreenEngine] = {
+        "OBS Studio": "obs",
+        "映像キャプチャデバイス": "capture-device",
+    }
+    _ENGINE_TO_LABEL: dict[ScreenEngine, str] = {
+        value: key for key, value in _LABEL_TO_ENGINE.items()
+    }
+
+    def __init__(self, value: ScreenConfiguration, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+
+        self._engine = QComboBox(self)
+        self._engine.addItems(list(self._LABEL_TO_ENGINE))
+        self._engine.setCurrentText(self._ENGINE_TO_LABEL[value.engine])
+        self._engine.currentTextChanged.connect(self._on_engine_changed)
+
+        engine_widget = QWidget(self)
+        engine_layout = QFormLayout(engine_widget)
+        engine_layout.setLabelAlignment(_FORM_ALIGNMENT_FLAG)
+        engine_layout.addRow("エンジン", self._engine)
+
+        self._obs_web_socket_server = ObsWebSocketServerGroup(
+            parent=self,
+            value=value.obs.web_socket_server,
+        )
+        self._obs_capture_device = ObsCaptureDeviceGroup(
+            parent=self,
+            value=value.obs.capture_device,
+        )
+
+        self._capture_device = QGroupBox(parent=self, title="映像キャプチャデバイス")
+        self._capture_device_name = QComboBox(self._capture_device)
+        self._capture_device_name.addItems([device.name for device in get_devices()])
+        self._capture_device_name.setCurrentText(value.capture_device.name)
+        capture_device_layout = QFormLayout(self._capture_device)
+        capture_device_layout.setLabelAlignment(_FORM_ALIGNMENT_FLAG)
+        capture_device_layout.addRow("デバイス名", self._capture_device_name)
+        self._capture_device.setLayout(capture_device_layout)
+
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        layout.addWidget(engine_widget)
+        layout.addWidget(self._obs_web_socket_server)
+        layout.addWidget(self._obs_capture_device)
+        layout.addWidget(self._capture_device)
+        self.setLayout(layout)
+
+        self._switch_engine(value.engine)
+
+    def output(self) -> ScreenConfiguration:
+        return ScreenConfiguration(
+            engine=self._LABEL_TO_ENGINE[self._engine.currentText()],
+            obs=ObsConfiguration(
+                web_socket_server=self._obs_web_socket_server.output(),
+                capture_device=self._obs_capture_device.output(),
+            ),
+            capture_device=CaptureDeviceConfiguration(
+                name=self._capture_device_name.currentText(),
+            ),
+        )
+
+    def _switch_engine(self, engine: Optional[ScreenEngine]) -> None:
+        self._obs_web_socket_server.hide()
+        self._obs_capture_device.hide()
+        self._capture_device.hide()
+
+        match engine:
+            case "obs":
+                self._obs_web_socket_server.show()
+                self._obs_capture_device.show()
+            case "capture-device":
+                self._capture_device.show()
+            case None:
+                ...  # 結合レベルでは通らない.
+
+    def _on_engine_changed(self, text: str) -> None:
+        self._switch_engine(self._LABEL_TO_ENGINE.get(text))
 
 
 class NotificationGroup(QGroupBox):
@@ -345,20 +430,8 @@ class ConfigurationDialog(QDialog):
         tab = QTabWidget(self)
         tab.setAccessibleName("設定タブ")
 
-        tab_obs = QWidget(tab)
-        self._web_socket_server = WebSocketServerGroup(
-            parent=tab_obs,
-            value=value.web_socket_server,
-        )
-        self._capture_device = CaptureDeviceGroup(
-            parent=tab_obs,
-            value=value.capture_device,
-        )
-        tab_obs_layout = QVBoxLayout(tab_obs)
-        tab_obs_layout.addWidget(self._web_socket_server)
-        tab_obs_layout.addWidget(self._capture_device)
-        tab_obs.setLayout(tab_obs_layout)
-        tab.addTab(tab_obs, "OBS 接続")
+        self._screen = ScreenWidget(parent=tab, value=value.screen)
+        tab.addTab(self._screen, "スクリーン")
 
         tab_notification = QWidget(tab)
         self._notification = NotificationGroup(
@@ -402,8 +475,7 @@ class ConfigurationDialog(QDialog):
 
     def output(self) -> Configuration:
         return Configuration(
-            web_socket_server=self._web_socket_server.output(),
-            capture_device=self._capture_device.output(),
+            screen=self._screen.output(),
             notification=self._notification.output(),
             bouyomichan=self._bouyomichan.output(),
             voicevox=self._voicevox.output(),

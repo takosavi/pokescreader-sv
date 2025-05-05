@@ -3,7 +3,7 @@ from typing import Optional
 from PySide6.QtWidgets import QWidget
 from loguru import logger
 
-from pkscrd.app.settings.model import Settings, ObsSettings
+from pkscrd.app.settings.model import Settings
 from pkscrd.app.settings.error import SettingsFileNotFoundError, SettingsError
 from pkscrd.app.settings.service import load_settings
 from .controller import ConfigurationDialog, check_using_initial_settings
@@ -35,4 +35,4 @@ def run_configuration(parent: Optional[QWidget] = None) -> bool:
 
 
 def _create_initial_settings() -> Settings:
-    return Settings(obs=ObsSettings(port=4445, password="", source=""))
+    return Settings()

@@ -6,26 +6,37 @@ from tomlkit.toml_file import TOMLFile, TOMLDocument
 from pkscrd.app.settings.model import Settings
 from pkscrd.app.settings.service import select_path
 from .model import (
-    Configuration,
-    WebSocketServerConfiguration,
-    CaptureDeviceConfiguration,
-    NotificationConfiguration,
-    BouyomichanConfiguration,
-    VoicevoxConfiguration,
     AudioConfiguration,
-    OcrConfiguration,
+    BouyomichanConfiguration,
+    CaptureDeviceConfiguration,
+    Configuration,
     GuiConfiguration,
+    NotificationConfiguration,
+    ObsCaptureDeviceConfiguration,
+    ObsConfiguration,
+    ObsWebSocketServerConfiguration,
+    OcrConfiguration,
+    ScreenConfiguration,
+    VoicevoxConfiguration,
 )
 
 
 def settings_to_conf(settings: Settings) -> Configuration:
     return Configuration(
-        web_socket_server=WebSocketServerConfiguration(
-            port=settings.obs.port,
-            password=settings.obs.password,
-        ),
-        capture_device=CaptureDeviceConfiguration(
-            source=settings.obs.source,
+        screen=ScreenConfiguration(
+            engine=settings.screen.engine,
+            obs=ObsConfiguration(
+                web_socket_server=ObsWebSocketServerConfiguration(
+                    port=settings.obs.port if settings.obs else 4445,
+                    password=settings.obs.password if settings.obs else "",
+                ),
+                capture_device=ObsCaptureDeviceConfiguration(
+                    source=settings.obs.source if settings.obs else "",
+                ),
+            ),
+            capture_device=CaptureDeviceConfiguration(
+                name=settings.capture_device.name if settings.capture_device else "",
+            ),
         ),
         notification=NotificationConfiguration(
             engine=settings.notification.engine,
@@ -63,10 +74,16 @@ def save(output: Configuration, path: Optional[str] = None) -> None:
 
     logger.debug("{}", output)
 
+    screen = _ensure_mapping(settings, "screen")
+    screen["engine"] = output.screen.engine
+
     obs = _ensure_mapping(settings, "obs")
-    obs["port"] = output.web_socket_server.port
-    obs["password"] = output.web_socket_server.password
-    obs["source"] = output.capture_device.source
+    obs["port"] = output.screen.obs.web_socket_server.port
+    obs["password"] = output.screen.obs.web_socket_server.password
+    obs["source"] = output.screen.obs.capture_device.source
+
+    capture_device = _ensure_mapping(settings, "capture_device")
+    capture_device["name"] = output.screen.capture_device.name
 
     notification = _ensure_mapping(settings, "notification")
     notification["engine"] = output.notification.engine

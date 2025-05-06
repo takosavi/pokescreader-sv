@@ -8,8 +8,7 @@ from PySide6.QtWidgets import QApplication
 from loguru import logger
 
 from pkscrd.app.configuration import run_configuration
-from pkscrd.app.reader import run_settings_error, show_pnlib_error
-from pkscrd.app.reader.app import create_reader
+from pkscrd.app.reader import ReaderManager, run_settings_error, show_pnlib_error
 from pkscrd.app.settings.error import SettingsError, SettingsFileNotFoundError
 
 
@@ -36,7 +35,7 @@ def main() -> None:
         Returns:
             読み上げアプリケーションの実行が引き続き必要であれば True, そうでなければ False.
         """
-        context_manager = create_reader()
+        context_manager = ReaderManager()
 
         hit_except = False
         try:
@@ -78,5 +77,5 @@ def main() -> None:
         except SettingsError as error:
             needs_configuration = run_settings_error(error)
             if not needs_configuration:
-                continue
+                break
             needs_reader = run_configuration()

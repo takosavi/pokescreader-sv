@@ -92,7 +92,7 @@ def using_device_screen_fetcher(
 
         async def recover() -> bool:
             await asyncio.sleep(5)
-            return bool(client.ensure_connection())
+            return bool(client.reconnect())
 
         tolerance = AsyncTolerance(
             event_handler=tolerance_callback,

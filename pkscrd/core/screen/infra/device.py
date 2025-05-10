@@ -52,6 +52,11 @@ class CaptureDeviceClient:
         ret, frame = self._capture.read()
         return frame if ret else None
 
+    def reconnect(self) -> bool:
+        if self._capture:
+            self._capture.release()
+        return self.ensure_connection()
+
     def __enter__(self) -> "CaptureDeviceClient":
         return self
 

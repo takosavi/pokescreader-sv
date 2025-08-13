@@ -28,7 +28,10 @@ class ObsScreenFetcher(ScreenFetcher):
 
     async def _fetch(self) -> cv2.typing.MatLike:
         data = await self._obs.get_source_screenshot(self._source)
-        return cv2.imdecode(np.frombuffer(data, dtype=np.uint8), cv2.IMREAD_COLOR)
+        decoded = cv2.imdecode(np.frombuffer(data, dtype=np.uint8), cv2.IMREAD_COLOR)
+        if decoded is None:
+            raise RuntimeError("Failed to decode a screenshot image.")
+        return decoded
 
 
 class ObsRecovery:

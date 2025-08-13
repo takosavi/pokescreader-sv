@@ -88,5 +88,4 @@ include = ["pkscrd/**/*.py", "tests/**/*.py"]
 
 [tool.mypy]
 exclude = "^build/.*"
-plugins = ["returns.contrib.mypy.returns_plugin"]
 ignore_missing_imports = true

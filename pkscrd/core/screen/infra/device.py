@@ -1,6 +1,6 @@
 import dataclasses
 import types
-from typing import Iterator, Optional, Type
+from typing import Iterator, Literal, Optional, Type
 
 import cv2
 from cv2.typing import MatLike
@@ -55,7 +55,7 @@ class CaptureDeviceClient:
     def reconnect(self) -> bool:
         if self._capture:
             self._capture.release()
-        return self.ensure_connection()
+        return bool(self.ensure_connection())
 
     def __enter__(self) -> "CaptureDeviceClient":
         return self
@@ -65,7 +65,7 @@ class CaptureDeviceClient:
         exc_type: Optional[Type[BaseException]],
         exc_val: Optional[BaseException],
         exc_tb: Optional[types.TracebackType],
-    ) -> bool:
+    ) -> Literal[False]:
         if self._capture:
             self._capture.release()
         return False

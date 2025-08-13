@@ -52,7 +52,7 @@ class ReaderManager:
         self._notifier_manager: Optional[contextlib.AbstractContextManager] = None
         self._executor_manager: Optional[ProcessPoolExecutor] = None
 
-    async def __aenter__(self) -> tuple[[GuiController, ImageProcessAgent]]:
+    async def __aenter__(self) -> tuple[GuiController, ImageProcessAgent]:
         settings_path = select_path()
         settings = load_settings(select_path())
         errors: Queue[str] = Queue(maxsize=10)
@@ -139,9 +139,9 @@ class ReaderManager:
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException],
-        exc_val: BaseException,
-        exc_tb: types.TracebackType,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[types.TracebackType],
     ) -> bool:
         logger.debug("Starting exiting the reader.")
         if self._screen_fetcher_manager:

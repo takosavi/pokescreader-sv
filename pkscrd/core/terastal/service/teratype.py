@@ -56,6 +56,7 @@ class TeraTypeDetector:
                 path = os.path.join(dir_path, file)
                 logger.debug("Load tera type model: {}", path)
                 image = cv2.imread(path)
+                assert image is not None
                 hist = _calc_terastal_histogram(image)
                 assert hist is not None
                 yield tera_type, hist

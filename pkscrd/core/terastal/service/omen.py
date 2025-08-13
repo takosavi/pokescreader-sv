@@ -44,13 +44,13 @@ class TerastalOmenDetector:
                 np.array((0, 0, 255), dtype=np.uint8),
             )
 
+        inner = cv2.imread(os.path.join(dir_path, "terastal-omen-inner.png"))
+        assert inner is not None
+        outer = cv2.imread(os.path.join(dir_path, "terastal-omen-outer.png"))
+        assert outer is not None
         return TerastalOmenModel(
-            mask_inner=_create_mask(
-                cv2.imread(os.path.join(dir_path, "terastal-omen-inner.png"))
-            ),
-            mask_outer=_create_mask(
-                cv2.imread(os.path.join(dir_path, "terastal-omen-outer.png"))
-            ),
+            mask_inner=_create_mask(inner),
+            mask_outer=_create_mask(outer),
         )
 
 

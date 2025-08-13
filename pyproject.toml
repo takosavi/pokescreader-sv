@@ -1,6 +1,6 @@
 [project]
 name = "pokescreader-sv"
-version = "1.5.3"
+version = "1.6.0"
 description = "ポケモン SV 向け画面読み上げツール."
 authors = [
     { name = "もち (Mochi)", email = "mochi.takosavi@gmail.com" },

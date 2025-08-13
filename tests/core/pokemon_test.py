@@ -60,6 +60,10 @@ class TestPokemonMapper:
             PokemonId(479, 1),
             Pokemon(PokemonId(479, 1), "ヒートロトム", [(Type.ELECTRIC, Type.FIRE)]),
         ),
+        "アルセウス": (
+            PokemonId(493, 0),
+            Pokemon(PokemonId(493, 0), "アルセウスノーマル", [(Type.NORMAL,)]),
+        ),
         "タイプ候補上書き": (
             PokemonId(892, 0),
             Pokemon(

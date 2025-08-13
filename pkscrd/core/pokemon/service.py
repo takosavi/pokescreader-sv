@@ -66,6 +66,13 @@ class PokemonMapper:
                 return pokemon.form_name[:-4]
             return pokemon.form_name
 
+        # アルセウスはタイプだけ付与する.
+        if pokemon.pokedex_number == 493 and pokemon.form_name:
+            form_name = pokemon.form_name
+            if form_name.endswith("タイプ"):
+                form_name = form_name[:-3]
+            return f"{pokemon.name}{form_name}"
+
         return pokemon.name
 
     @staticmethod

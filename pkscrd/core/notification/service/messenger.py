@@ -91,7 +91,7 @@ class Messenger:
                 label = _TEAM_DIRECTION_TO_TEXT[dir_]
                 if not team:
                     return f"{label}が認識されていません"
-                return f"{label}。{self._convert_team(team, with_types)}"
+                return f"{label}。{self._convert_team(team, with_types, is_ally=dir_ is TeamDirection.ALLY)}"
 
             case SelectionNotification(items=items):
                 if not items:
@@ -179,22 +179,33 @@ class Messenger:
                 logger.warning("Unsupported notification: {}", notification)
                 return "想定されていない発話です"
 
-    def _convert_team(self, team: Team, with_types: bool = False) -> str:
+    def _convert_team(
+        self,
+        team: Team,
+        with_types: bool = False,
+        is_ally: bool = False,
+    ) -> str:
         return "。".join(
             (
                 (
-                    (
-                        pokemon.name
-                        + "、"
-                        + "または".join(
-                            "".join(_TYPE_TO_TEXT[type_] for type_ in typeset)
-                            for typeset in pokemon.typesets
-                        )
+                    name
+                    + "、"
+                    + "または".join(
+                        "".join(_TYPE_TO_TEXT[type_] for type_ in typeset)
+                        for typeset in pokemon.typesets
                     )
                     if with_types
-                    else pokemon.name
+                    else name
                 )
-                if (pokemon := (self._pokemon_mapper.get(id) if id else None))
+                if (pokemon := self._pokemon_mapper.get(id) if id else None)
+                and (
+                    # HACK 味方アルセウスのタイプが判別できない間の暫定措置.
+                    name := (
+                        pokemon.name
+                        if not is_ally or not pokemon.name.startswith("アルセウス")
+                        else "アルセウス"
+                    )
+                )
                 else "認識不可"
             )
             for id in team

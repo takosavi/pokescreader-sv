@@ -94,17 +94,17 @@ class TestMessenger:
         "チーム: 味方, タイプなし": (
             TeamNotification(
                 direction=TeamDirection.ALLY,
-                team=[PokemonId(4, 0), PokemonId(892, 0)],
+                team=[PokemonId(892, 0), PokemonId(493, 0)],
             ),
-            "味方チーム。ヒトカゲ。ウーラオス",
+            "味方チーム。ウーラオス。アルセウス",
         ),
         "チーム: 相手, タイプあり": (
             TeamNotification(
                 direction=TeamDirection.OPPONENT,
-                team=[PokemonId(4, 0), PokemonId(892, 0)],
+                team=[PokemonId(493, 0), PokemonId(892, 0)],
                 with_types=True,
             ),
-            "相手チーム。ヒトカゲ、ほのお。ウーラオス、かくとうみずまたはかくとうあく",
+            "相手チーム。アルセウスノーマル、ノーマル。ウーラオス、かくとうみずまたはかくとうあく",
         ),
         "選出: 選出なし": (SelectionNotification(items=[]), "選出されていません"),
         "選出: 選出あり": (
